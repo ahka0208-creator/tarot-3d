@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🌌 塔羅時間之流占卜 (78張完整版)</title>
+    <title>🌌 塔羅全方位運程 (沉浸抽卡版)</title>
     <style>
         :root {
             --bg-dark: #07080a;
@@ -38,62 +38,22 @@
 
         .subtitle {
             text-align: center;
-            font-size: 13px;
+            font-size: 14px;
             color: #8a9ba8;
             margin-bottom: 20px;
             line-height: 1.5;
-        }
-
-        .input-box {
-            width: 100%;
-            max-width: 350px;
-            margin-bottom: 20px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            box-sizing: border-box;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(212, 175, 55, 0.5);
-            border-radius: 8px;
-            color: white;
-            font-size: 15px;
-            text-align: center;
-            outline: none;
-            transition: all 0.3s;
-        }
-
-        input[type="text"]:focus {
-            border-color: var(--gold);
-            box-shadow: 0 0 10px var(--gold-glow);
-        }
-
-        .action-btn {
-            background: transparent;
-            color: var(--gold);
-            border: 1px solid var(--gold);
-            padding: 10px 25px;
-            border-radius: 25px;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 20px;
-        }
-
-        .action-btn:hover, .action-btn:active {
-            background: var(--gold);
-            color: #0b0c10;
+            height: 42px; /* 固定高度防止跳動 */
         }
 
         /* 3張牌的牌陣排版 */
         .spread-container {
-            display: none;
             width: 100%;
             max-width: 500px;
+            display: flex;
             justify-content: space-between;
             gap: 10px;
             margin-bottom: 20px;
+            z-index: 10;
         }
 
         .card-wrapper {
@@ -105,7 +65,7 @@
 
         .position-label {
             color: var(--gold);
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             margin-bottom: 8px;
             border-bottom: 1px solid var(--gold);
@@ -116,17 +76,46 @@
             width: 100%;
             aspect-ratio: 2 / 3.2; /* 塔羅牌比例 */
             perspective: 1000px;
+            position: relative;
         }
 
+        /* 空槽位設計 */
+        .empty-slot {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: rgba(212, 175, 55, 0.5);
+            font-size: 12px;
+            box-sizing: border-box;
+            transition: opacity 0.3s;
+        }
+
+        /* 實際卡牌設計 */
         .card {
             width: 100%;
             height: 100%;
-            position: relative;
+            position: absolute;
             transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-style: preserve-3d;
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             border-radius: 8px;
+            display: none; /* 預設隱藏，抽中才顯示 */
+        }
+
+        .pop-in {
+            display: block;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         .card.is-flipped {
@@ -155,14 +144,14 @@
         }
 
         .mystic-circle {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border: 1px dashed var(--gold);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
+            font-size: 20px;
         }
 
         .card-face-front {
@@ -172,21 +161,56 @@
             padding: 5px;
         }
 
-        .card-image-placeholder {
-            font-size: 40px;
-            margin-bottom: 10px;
+        .card-image-placeholder { font-size: 40px; margin-bottom: 5px; }
+        .card-name {
+            font-size: 11px; font-weight: bold; color: #2b1b3d;
+            text-align: center; border-top: 1px solid var(--gold);
+            border-bottom: 1px solid var(--gold); padding: 2px 0; width: 90%;
         }
 
-        .card-name {
-            font-size: 11px;
-            font-weight: bold;
-            color: #2b1b3d;
-            text-align: center;
-            border-top: 1px solid var(--gold);
-            border-bottom: 1px solid var(--gold);
-            padding: 2px 0;
-            width: 90%;
-            line-height: 1.2;
+        /* 扇形牌堆區 (The Deck) */
+        .deck-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            height: 160px;
+            margin-top: 10px;
+            overflow: hidden;
+            transition: opacity 0.8s, transform 0.8s;
+        }
+
+        .deck-container.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+        }
+
+        .deck-card {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            width: 40px;
+            height: 70px;
+            background: linear-gradient(135deg, #111 0%, #2b1b3d 100%);
+            border: 1px solid rgba(212,175,55,0.6);
+            border-radius: 4px;
+            transform-origin: bottom center;
+            cursor: pointer;
+            transition: transform 0.2s ease, opacity 0.4s ease, margin-bottom 0.2s;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+        }
+
+        .deck-card:hover {
+            margin-bottom: 15px;
+            border-color: #fff;
+            box-shadow: 0 0 10px var(--gold-glow);
+            z-index: 100 !important;
+        }
+
+        .deck-card.drawn {
+            opacity: 0;
+            transform: translateY(-50px) scale(0.5) !important;
+            pointer-events: none;
         }
 
         /* 深度分析區 */
@@ -209,66 +233,50 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .analysis-block {
-            margin-bottom: 20px;
-        }
-        .analysis-block:last-child {
-            margin-bottom: 0;
-        }
-
+        .analysis-block { margin-bottom: 22px; }
+        .analysis-block:last-child { margin-bottom: 0; }
         .block-title {
-            color: var(--gold);
-            font-size: 15px;
-            font-weight: bold;
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            color: var(--gold); font-size: 16px; font-weight: bold;
+            margin-bottom: 8px; display: flex; align-items: center; gap: 5px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2); padding-bottom: 5px;
         }
-
         .block-card-name {
-            font-size: 16px;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 5px;
+            font-size: 15px; font-weight: bold; color: #fff; margin-bottom: 6px;
+            display: inline-block; background: rgba(212, 175, 55, 0.2);
+            padding: 2px 8px; border-radius: 5px;
         }
+        .block-desc { font-size: 15px; line-height: 1.6; color: #d1d5db; }
 
-        .block-desc {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #d1d5db;
-        }
-        
-        #instruction {
+        .action-btn {
+            background: transparent;
             color: var(--gold);
-            margin-bottom: 15px;
-            font-size: 14px;
-            animation: pulse 2s infinite;
-            display: none;
+            border: 1px solid var(--gold);
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 250px;
+            display: none; /* 預設隱藏 */
+            margin: 20px auto 0 auto;
         }
+        .action-btn:hover { background: var(--gold); color: #0b0c10; }
 
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
-    <h2>🌌 塔羅時間之流占卜</h2>
-    <div class="subtitle">輸入你想問的問題<br>系統將抽出 3 張牌，為你解析對策方向。</div>
-
-    <div class="input-box" id="inputContainer">
-        <input type="text" id="question" placeholder="例如：我接下來的工作發展會點？">
-    </div>
-
-    <button class="action-btn" id="startBtn" onclick="startReading()">✨ 為我洗牌與發牌 ✨</button>
-
-    <div id="instruction">👆 請依序點擊翻開 3 張牌</div>
+    <h2>🌌 塔羅全方位運程</h2>
+    <div class="subtitle" id="subtitleText">深呼吸，請從下方 78 張牌陣中<br>憑直覺抽出 <b>3</b> 張屬於你的牌。</div>
 
     <!-- 牌陣區 -->
     <div class="spread-container" id="spreadContainer">
-        <!-- 過去 -->
+        <!-- 領域 1：事業 -->
         <div class="card-wrapper">
-            <div class="position-label">⏳ 過去/原因</div>
+            <div class="position-label">💼 事業學業</div>
             <div class="scene">
+                <div class="empty-slot" id="slot-0">抽取 1</div>
                 <div class="card" id="card-0" onclick="flipCard(0)">
                     <div class="card-face card-face-back"><div class="mystic-circle">🔯</div></div>
                     <div class="card-face card-face-front">
@@ -278,10 +286,11 @@
                 </div>
             </div>
         </div>
-        <!-- 現在 -->
+        <!-- 領域 2：感情 -->
         <div class="card-wrapper">
-            <div class="position-label">👁️ 現在/狀態</div>
+            <div class="position-label">❤️ 感情緣份</div>
             <div class="scene">
+                <div class="empty-slot" id="slot-1">抽取 2</div>
                 <div class="card" id="card-1" onclick="flipCard(1)">
                     <div class="card-face card-face-back"><div class="mystic-circle">🔯</div></div>
                     <div class="card-face card-face-front">
@@ -291,10 +300,11 @@
                 </div>
             </div>
         </div>
-        <!-- 未來 -->
+        <!-- 領域 3：生活 -->
         <div class="card-wrapper">
-            <div class="position-label">🚀 未來/建議</div>
+            <div class="position-label">🏡 家庭生活</div>
             <div class="scene">
+                <div class="empty-slot" id="slot-2">抽取 3</div>
                 <div class="card" id="card-2" onclick="flipCard(2)">
                     <div class="card-face card-face-back"><div class="mystic-circle">🔯</div></div>
                     <div class="card-face card-face-front">
@@ -306,92 +316,88 @@
         </div>
     </div>
 
+    <!-- 真實 78 張扇形牌堆 -->
+    <div class="deck-container" id="deckContainer">
+        <!-- JS 動態生成 78 張牌 -->
+    </div>
+
     <!-- 解析區 -->
     <div class="analysis-section" id="analysisSection">
-        <div style="color:#fff; margin-bottom:15px; border-bottom:1px solid var(--gold); padding-bottom:10px;" id="questionDisplay"></div>
-        
         <div class="analysis-block">
-            <div class="block-title">⏳ 【過去 / 原因】這件事的起源與背景</div>
+            <div class="block-title">💼 【事業與學業發展】</div>
             <div class="block-card-name" id="namePast"></div>
             <div class="block-desc" id="descPast"></div>
         </div>
-        
         <div class="analysis-block">
-            <div class="block-title">👁️ 【現在 / 狀態】目前的處境與關鍵</div>
+            <div class="block-title">❤️ 【感情與人際緣份】</div>
             <div class="block-card-name" id="namePresent"></div>
             <div class="block-desc" id="descPresent"></div>
         </div>
-        
         <div class="analysis-block">
-            <div class="block-title">🚀 【未來 / 建議】發展趨勢與對策</div>
+            <div class="block-title">🏡 【家庭與整體生活】</div>
             <div class="block-card-name" id="nameFuture"></div>
             <div class="block-desc" id="descFuture"></div>
         </div>
-        
-        <button class="action-btn" style="width:100%; margin-top:20px; margin-bottom:0;" onclick="resetAll()">🔄 重新占卜</button>
+        <button class="action-btn" id="resetBtn" onclick="resetAll()">🔄 重新洗牌測算</button>
     </div>
 
 <script>
-    // 78張完整塔羅牌資料庫 (包含大、小阿爾克那)
+    // 78張完整塔羅牌資料庫
     const tarotDeck = [
-        // 大阿爾克那 (22張)
-        { n: "0. 愚者", i: "🃏", m: "象徵新開始與冒險。提示你要放下包袱，憑直覺大膽邁出第一步，不要被過去的經驗限制。" },
-        { n: "I. 魔術師", i: "🪄", m: "代表創造力與行動。你已具備解決問題的資源與能力，請集中精神，將想法化為實際行動。" },
-        { n: "II. 女祭司", i: "🌙", m: "直覺與潛意識的象徵。目前不宜高調行事，靜下心來觀察，相信你的第一直覺，答案隱藏在表面之下。" },
-        { n: "III. 皇后", i: "👑", m: "豐收與母性的能量。事情會朝著充滿愛與舒適的方向發展，享受當下，用溫和包容的態度對待人事物。" },
-        { n: "IV. 皇帝", i: "🏛️", m: "權威與秩序。這是一個需要建立規則與承擔責任的時刻。保持理智與紀律，你將能掌握大局。" },
-        { n: "V. 教皇", i: "🕍", m: "傳統與指引。按部就班是最好的策略，尋求長輩或專業人士的援助，遵循正統的方式能幫你避開風險。" },
-        { n: "VI. 戀人", i: "💑", m: "面臨選擇或完美的結合。代表極佳的溝通與人際關係，面對抉擇時，請跟隨你內心最真實的熱愛。" },
+        { n: "0. 愚者", i: "🃏", m: "象徵新開始與冒險。提示你要放下包袱，憑直覺大膽邁出第一步，不要被過去的經驗限制，隨心而行會帶來驚喜。" },
+        { n: "I. 魔術師", i: "🪄", m: "代表創造力與行動。你已具備解決問題的資源與能力，請集中精神，將想法化為實際行動，你能掌控大局。" },
+        { n: "II. 女祭司", i: "🌙", m: "直覺與潛意識的象徵。目前不宜高調行事，靜下心來觀察，相信你的第一直覺，答案其實隱藏在表面之下。" },
+        { n: "III. 皇后", i: "👑", m: "豐收與母性的能量。事情會朝著充滿愛與舒適的方向發展，享受當下，用溫和包容的態度對待身邊的人事物。" },
+        { n: "IV. 皇帝", i: "🏛️", m: "權威與秩序。這是一個需要建立規則與承擔責任的時刻。保持理智與紀律，你將能提供極大的安全感與穩定。" },
+        { n: "V. 教皇", i: "🕍", m: "傳統與指引。按部就班是最好的策略，尋求長輩或專業人士的援助，遵循正統的方式能幫你避開不必要的風險。" },
+        { n: "VI. 戀人", i: "💑", m: "面臨選擇或完美的結合。代表極佳的溝通與人際關係，面對抉擇時，請跟隨你內心最真實的熱愛去行動。" },
         { n: "VII. 戰車", i: "🐎", m: "憑藉強大的意志力與行動力去克服困難。雖然過程充滿挑戰與競爭，但只要目標明確，必能取得勝利。" },
-        { n: "VIII. 力量", i: "🦁", m: "內在的韌性。切忌硬碰硬，你需要運用溫柔、耐心與智慧來化解當前的僵局或困難。" },
-        { n: "IX. 隱士", i: "🏮", m: "內省與沉澱。遠離外界的喧囂，這是一個反思方向的時期，不要盲目跟風，向內尋求真理。" },
-        { n: "X. 命運之輪", i: "🎡", m: "不可抗拒的轉捩點。命運的齒輪已經轉動，無論順境逆境，順應改變並把握契機，機遇就藏在變動中。" },
-        { n: "XI. 正義", i: "⚖️", m: "公平與因果。一切講求理智與規則，付出多少就會收穫多少。處理問題需保持客觀，不偏袒情緒。" },
-        { n: "XII. 倒吊人", i: "🦇", m: "停滯與換位思考。按下暫停鍵，嘗試用完全相反的角度看待問題，暫時的犧牲與放下會帶來頓悟。" },
-        { n: "XIII. 死神", i: "💀", m: "徹底的結束與重生。舊的模式必須被摧毀，不要害怕改變，放下過去的包袱才能迎接全新的發展。" },
-        { n: "XIV. 節制", i: "🕊️", m: "平衡與協調。化解衝突的最佳時機，保持生活與情緒的平衡，凡事不宜走極端，尋找中庸之道。" },
-        { n: "XV. 惡魔", i: "⛓️", m: "誘惑與物質的束縛。小心被慾望或不健康的關係綁架，看清眼前的虛幻，及時斬斷惡性循環。" },
-        { n: "XVI. 高塔", i: "⚡", m: "突如其來的破壞與巨變。雖然令人震驚，但同時也摧毀了限制你發展的錯誤基礎，是大破大立的契機。" },
-        { n: "XVII. 星星", i: "🌟", m: "平靜、希望與療癒。經歷低潮後迎來曙光，前景光明，跟隨你內心最高尚的願景前進，宇宙會為你指路。" },
-        { n: "XVIII. 月亮", i: "🌕", m: "不安與隱藏的危機。局勢不明朗，容易產生情緒起伏或誤會。不宜做重大決定，需小心謹慎觀察。" },
+        { n: "VIII. 力量", i: "🦁", m: "內在的韌性。切忌硬碰硬，你需要運用溫柔、耐心與智慧來化解當前的僵局，以柔克剛是你最強的武器。" },
+        { n: "IX. 隱士", i: "🏮", m: "內省與沉澱。遠離外界的喧囂，這是一個反思方向的時期，不要盲目跟風，給自己一點獨處的時間尋找答案。" },
+        { n: "X. 命運之輪", i: "🎡", m: "不可抗拒的轉捩點。命運的齒輪已經轉動，無論順境逆境，順應改變並把握契機，機遇就藏在變動之中。" },
+        { n: "XI. 正義", i: "⚖️", m: "公平與因果。一切講求理智與規則，付出多少就會收穫多少。處理事情需保持客觀，尋求完美的平衡點。" },
+        { n: "XII. 倒吊人", i: "🦇", m: "停滯與換位思考。按下暫停鍵，嘗試用完全相反的角度看待問題，暫時的妥協與放下執著會為你帶來頓悟。" },
+        { n: "XIII. 死神", i: "💀", m: "徹底的結束與重生。舊的模式必須被改變，不要害怕結束，放下過去的包袱才能迎接全新的、更好的發展。" },
+        { n: "XIV. 節制", i: "🕊️", m: "平衡與協調。這是化解衝突的最佳時機，保持生活與情緒的平衡，凡事不宜走極端，尋找雙贏的中庸之道。" },
+        { n: "XV. 惡魔", i: "⛓️", m: "誘惑與物質的束縛。小心被慾望或不健康的關係綁架，看清眼前的虛幻，你需要及時斬斷消耗你的惡性循環。" },
+        { n: "XVI. 高塔", i: "⚡", m: "突如其來的破壞與巨變。雖然令人震驚，但同時也摧毀了限制你發展的錯誤基礎，這是一次大破大立的契機。" },
+        { n: "XVII. 星星", i: "🌟", m: "平靜、希望與療癒。經歷低潮後迎來曙光，前景光明，跟隨你內心最高尚的願景前進，會得到宇宙的祝福。" },
+        { n: "XVIII. 月亮", i: "🌕", m: "不安與隱藏的危機。局勢不明朗，容易產生情緒起伏或猜忌。不宜做重大決定，需小心謹慎觀察真實情況。" },
         { n: "XIX. 太陽", i: "☀️", m: "成功、喜悅與真相大白。一切陰霾都被驅散，能量飽滿。大方展現自己，你將獲得極大的快樂與認可。" },
-        { n: "XX. 審判", i: "🎺", m: "覺醒與最終的結果。過去的努力即將得到評判；放下恩怨，這是一個自我覺醒與東山再起的大好時機。" },
+        { n: "XX. 審判", i: "🎺", m: "覺醒與最終的結果。過去的努力即將得到評判；放下恩怨，這是一個自我覺醒、原諒與東山再起的大好時機。" },
         { n: "XXI. 世界", i: "🌍", m: "圓滿與達成。事情達到最完美的狀態，這是一個階段性的終點，你已準備好迎接下一個更高層次的旅程。" },
         
-        // 小阿爾克那 - 權杖 (火 - 行動與熱情)
-        { n: "權杖一", i: "🔥", m: "行動力與熱情的爆發，一個充滿創造力的新計畫即將展開。" },
-        { n: "權杖二", i: "🔥", m: "面臨選擇與規劃未來。擁有主導權，勇敢放眼更長遠的目標。" },
-        { n: "權杖三", i: "🔥", m: "探索與擴張。先前的努力開始見效，準備迎接更廣闊的發展空間。" },
-        { n: "權杖四", i: "🔥", m: "穩定與慶祝。達到一個安穩的里程碑，享受和諧與穩固的基礎。" },
-        { n: "權杖五", i: "🔥", m: "競爭與小衝突。身處混亂或意見分歧中，需要溝通與良性競爭來突破。" },
-        { n: "權杖六", i: "🔥", m: "勝利與榮耀。你的努力獲得認可，這是一個充滿自信與好消息的時刻。" },
-        { n: "權杖七", i: "🔥", m: "堅持與防禦。面臨挑戰與反對聲音，請堅守你的立場，你有能力抵禦外敵。" },
-        { n: "權杖八", i: "🔥", m: "迅速發展。事情進展極快，障礙已經消除，是乘勝追擊的好時機。" },
+        { n: "權杖一", i: "🔥", m: "行動力與熱情的爆發，一個充滿創造力與活力的新計畫或新契機即將展開。" },
+        { n: "權杖二", i: "🔥", m: "面臨選擇與規劃未來。你擁有主導權，請勇敢放眼更長遠的目標，不要局限於現狀。" },
+        { n: "權杖三", i: "🔥", m: "探索與擴張。先前的努力開始見效，準備迎接更廣闊的發展空間與合作機會。" },
+        { n: "權杖四", i: "🔥", m: "穩定與慶祝。達到一個安穩的里程碑，享受和諧、穩固的基礎與成功的喜悅。" },
+        { n: "權杖五", i: "🔥", m: "競爭與小衝突。身處混亂或意見分歧中，需要透過溝通與良性競爭來突破困境。" },
+        { n: "權杖六", i: "🔥", m: "勝利與榮耀。你的努力獲得了外界的認可，這是一個充滿自信與好消息的時刻。" },
+        { n: "權杖七", i: "🔥", m: "堅持與防禦。面臨挑戰與反對聲音，請堅守你的立場，你有足夠的能力抵禦外界壓力。" },
+        { n: "權杖八", i: "🔥", m: "迅速發展。事情進展極快，障礙已經消除，是乘勝追擊、快速行動的好時機。" },
         { n: "權杖九", i: "🔥", m: "疲憊但堅持。雖然滿身傷痕，但只差最後一步，請保持警覺並咬緊牙關撐下去。" },
-        { n: "權杖十", i: "🔥", m: "壓力與重擔。你承擔了過多責任，被壓得喘不過氣。需要學會放下或尋求分擔。" },
-        { n: "權杖侍者", i: "🔥", m: "充滿熱情與好奇心的新消息。帶著初生之犢不畏虎的精神去探索新事物。" },
-        { n: "權杖騎士", i: "🔥", m: "衝動與迅速的行動。充滿幹勁，但需注意不要因為過於急躁而忽略細節。" },
+        { n: "權杖十", i: "🔥", m: "壓力與重擔。你承擔了過多責任，被壓得喘不過氣。需要學會放下、拒絕或尋求他人分擔。" },
+        { n: "權杖侍者", i: "🔥", m: "充滿熱情與好奇心的新消息。帶著初生之犢不畏虎的精神去探索新事物吧。" },
+        { n: "權杖騎士", i: "🔥", m: "衝動與迅速的行動。充滿幹勁，但需注意不要因為過於急躁而忽略了重要細節。" },
         { n: "權杖王后", i: "🔥", m: "自信、魅力與溫暖。以積極樂觀的態度處理問題，能輕易感染並帶動身邊的人。" },
-        { n: "權杖國王", i: "🔥", m: "果斷的領導力與魄力。以宏觀的視野與堅定的意志去掌控全局，達成目標。" },
+        { n: "權杖國王", i: "🔥", m: "果斷的領導力與魄力。以宏觀的視野與堅定的意志去掌控全局，達成你的目標。" },
 
-        // 小阿爾克那 - 聖杯 (水 - 情感與關係)
-        { n: "聖杯一", i: "🍷", m: "情感的滿溢。新戀情、深厚友誼或靈感湧現的開端，心靈感到無比滿足。" },
-        { n: "聖杯二", i: "🍷", m: "平等的結合與契合。一段充滿愛與互相理解的關係，合作無間。" },
-        { n: "聖杯三", i: "🍷", m: "歡聚與分享。與志同道合的朋友一起慶祝，充滿喜悅與和諧的團隊精神。" },
-        { n: "聖杯四", i: "🍷", m: "冷漠與疲倦。對現狀感到不滿或無聊，甚至忽略了身邊正在提供的新機會。" },
-        { n: "聖杯五", i: "🍷", m: "失落與悲傷。沉浸在過去的失去中，請轉頭看看身邊其實還有未傾倒的杯子（希望）。" },
-        { n: "聖杯六", i: "🍷", m: "回憶與純真。可能會與舊人重逢，或者從過去的經驗中找到溫暖與慰藉。" },
-        { n: "聖杯七", i: "🍷", m: "幻想與選擇困難。面前有很多誘人的選項，但很多只是虛幻，需保持清醒做出實際的選擇。" },
+        { n: "聖杯一", i: "🍷", m: "情感的滿溢。新戀情、深厚友誼或靈感湧現的開端，心靈感到無比滿足與平靜。" },
+        { n: "聖杯二", i: "🍷", m: "平等的結合與契合。一段充滿愛、互相理解且合作無間的關係正在發展。" },
+        { n: "聖杯三", i: "🍷", m: "歡聚與分享。與志同道合的人一起慶祝，充滿喜悅與和諧的團隊或社交氛圍。" },
+        { n: "聖杯四", i: "🍷", m: "冷漠與疲倦。對現狀感到不滿或無聊，甚至忽略了身邊正在為你提供的新機會。" },
+        { n: "聖杯五", i: "🍷", m: "失落與悲傷。沉浸在過去的失去中，請轉頭看看身邊，其實還有未傾倒的希望。" },
+        { n: "聖杯六", i: "🍷", m: "回憶與純真。可能會與舊人重逢，或者從過去的美好經驗中找到溫暖與慰藉。" },
+        { n: "聖杯七", i: "🍷", m: "幻想與選擇困難。面前有很多誘人的選項，但很多只是虛幻，需保持清醒做出實際選擇。" },
         { n: "聖杯八", i: "🍷", m: "追尋與離開。覺得現狀無法滿足心靈，決定放下目前的一切，去尋找更深層的意義。" },
-        { n: "聖杯九", i: "🍷", m: "心願達成與滿足。物質與情感都得到極大的滿足，是塔羅牌中的「美夢成真」牌。" },
-        { n: "聖杯十", i: "🍷", m: "美滿與和諧。家庭或團體生活達到最幸福的狀態，充滿著愛與安全感。" },
-        { n: "聖杯侍者", i: "🍷", m: "溫柔浪漫的新消息。直覺敏銳，可能會有新的曖昧對象或藝術靈感出現。" },
-        { n: "聖杯騎士", i: "🍷", m: "追求理想與浪漫。充滿詩意與感性，聽從內心的聲音去追尋所愛，但需防過於理想化。" },
-        { n: "聖杯王后", i: "🍷", m: "同理心與極強的直覺。善解人意，能提供極佳的情感支持與療癒能量。" },
-        { n: "聖杯國王", i: "🍷", m: "情感的成熟與克制。能完美平衡理智與情感，是個寬容且充滿智慧的傾聽者。" },
+        { n: "聖杯九", i: "🍷", m: "心願達成與滿足。物質與情感都得到極大的滿足，這是一張代表「美夢成真」的好牌。" },
+        { n: "聖杯十", i: "🍷", m: "美滿與和諧。生活達到最幸福的狀態，充滿著愛、安全感與長遠的承諾。" },
+        { n: "聖杯侍者", i: "🍷", m: "溫柔浪漫的新消息。直覺敏銳，可能會有新的情感萌芽或藝術靈感出現。" },
+        { n: "聖杯騎士", i: "🍷", m: "追求理想與浪漫。充滿詩意與感性，聽從內心的聲音去追尋，但需防過於理想化。" },
+        { n: "聖杯王后", i: "🍷", m: "同理心與極強的直覺。善解人意，能提供極佳的情感支持與溫柔的療癒能量。" },
+        { n: "聖杯國王", i: "🍷", m: "情感的成熟與克制。能完美平衡理智與情感，是個寬容且充滿智慧的傾聽者與引導者。" },
 
-        // 小阿爾克那 - 寶劍 (風 - 理智與衝突)
-        { n: "寶劍一", i: "⚔️", m: "清晰的思考與決斷。用理智斬斷迷霧，看清真相，這是一個極佳的突破口。" },
+        { n: "寶劍一", i: "⚔️", m: "清晰的思考與決斷。用理智斬斷迷霧，看清真相，這是一個極佳的突破口與新思維。" },
         { n: "寶劍二", i: "⚔️", m: "逃避與僵局。自我蒙蔽不願面對現實，卡在兩難的選擇中，必須鼓起勇氣做出決定。" },
         { n: "寶劍三", i: "⚔️", m: "悲傷與心碎。面臨殘酷的真相或言語傷害。雖然痛苦，但只有經歷痛楚才能真正療癒。" },
         { n: "寶劍四", i: "⚔️", m: "休息與沉澱。經歷戰鬥後的退歇，現在需要暫停一切，讓身心恢復能量後再出發。" },
@@ -400,81 +406,101 @@
         { n: "寶劍七", i: "⚔️", m: "逃避與欺瞞。嘗試用捷徑或取巧的方式解決問題。需誠實面對，避免因小失大。" },
         { n: "寶劍八", i: "⚔️", m: "自我限制。覺得被困住無法動彈，但其實綁住你的只是你內心的恐懼，只要願意就能掙脫。" },
         { n: "寶劍九", i: "⚔️", m: "焦慮與失眠。被過度的擔憂與噩夢折磨，但這多半是自己幻想出來的恐懼，並非現實。" },
-        { n: "寶劍十", i: "⚔️", m: "徹底的結束與谷底。情況壞到了極點，但也代表痛苦即將終結，黎明即將到來。" },
-        { n: "寶劍侍者", i: "⚔️", m: "機警與探求真相。思想敏捷，善於收集資訊，但要注意言語可能過於犀利傷人。" },
+        { n: "寶劍十", i: "⚔️", m: "徹底的結束與谷底。情況壞到了極點，但也代表痛苦即將終結，重生的黎明即將到來。" },
+        { n: "寶劍侍者", i: "⚔️", m: "機警與探求真相。思想敏捷，善於收集資訊，但要注意言語溝通時可能過於犀利傷人。" },
         { n: "寶劍騎士", i: "⚔️", m: "勇往直前與速度。腦筋轉得極快，行動果斷，但需避免魯莽行事及欠缺耐性。" },
-        { n: "寶劍王后", i: "⚔️", m: "理智、冷靜與獨立。不被情感左右，用客觀且銳利的眼光看透事物的本質。" },
+        { n: "寶劍王后", i: "⚔️", m: "理智、冷靜與獨立。不被情感左右，用客觀且銳利的眼光看透事物的本質與真相。" },
         { n: "寶劍國王", i: "⚔️", m: "權威、嚴謹與邏輯。極具判斷力與專業知識，以公平嚴格的態度掌控大局。" },
 
-        // 小阿爾克那 - 錢幣 (土 - 物質與現實)
-        { n: "錢幣一", i: "🪙", m: "物質與財務上的新機遇。一個務實的開端，穩紮穩打將為未來帶來豐碩的成果。" },
+        { n: "錢幣一", i: "🪙", m: "物質與財務上的新機遇。一個務實的開端，穩紮穩打將為未來帶來豐碩的實質成果。" },
         { n: "錢幣二", i: "🪙", m: "波動與平衡。正在多項任務或財務狀況中玩拋接球，需要極高的靈活度來維持動態平衡。" },
         { n: "錢幣三", i: "🪙", m: "團隊合作與專業技能。透過不同專業的結合與溝通，共同打造出高質量的成果。" },
-        { n: "錢幣四", i: "🪙", m: "保守與固執。為了安全感而緊抓著金錢或現狀不放，但過度封閉會阻礙新的資金或機會流入。" },
+        { n: "錢幣四", i: "🪙", m: "保守與固執。為了安全感而緊抓著金錢或現狀不放，但過度封閉會阻礙新機會流入。" },
         { n: "錢幣五", i: "🪙", m: "貧乏與困境。面臨物質或精神上的寒冬，感到孤立無援。請尋求外界幫助，不要獨自硬撐。" },
         { n: "錢幣六", i: "🪙", m: "慷慨分享與資源平衡。施與受的狀態，你可能獲得資助，或者有能力去幫助他人，達成雙贏。" },
         { n: "錢幣七", i: "🪙", m: "等待收成與重新評估。付出了很多努力，現在是停下來檢視成果、思考下一步發展的時刻。" },
-        { n: "錢幣八", i: "🪙", m: "專注與勤奮。全神貫注地投入工作或學習技能中，持續的努力累積將造就卓越的專業。" },
+        { n: "錢幣八", i: "🪙", m: "專注與勤奮。全神貫注地投入工作或學習技能中，持續的努力累積將造就卓越的專業度。" },
         { n: "錢幣九", i: "🪙", m: "富足與獨立。達到了物質與精神的雙重豐收，享受自己努力得來的優雅與舒適生活。" },
-        { n: "錢幣十", i: "🪙", m: "家族繁榮與傳承。極其穩固的財務狀態，基業長青，享受天倫之樂與長遠的安全感。" },
+        { n: "錢幣十", i: "🪙", m: "家族繁榮與傳承。極其穩固的財務狀態，基業長青，享受長遠的安全感與豐足。" },
         { n: "錢幣侍者", i: "🪙", m: "務實與勤奮的學習者。有著明確的目標，願意腳踏實地從基礎做起，穩步向前。" },
         { n: "錢幣騎士", i: "🪙", m: "穩健與責任感。雖然進展緩慢，但他極度可靠，會堅持到底完成所有的任務。" },
         { n: "錢幣王后", i: "🪙", m: "豐饒與照顧。擅長理財且極具耐心，能為周圍的人提供溫暖且實際的物質與情感支持。" },
         { n: "錢幣國王", i: "🪙", m: "財富與世俗成就的頂點。擁有極佳的商業頭腦與實力，是個穩重且成功的領導者。" }
     ];
 
-    let drawnCards = [];
+    let deckCopy = [];
+    let selectedCardsData = [];
     let flippedCount = 0;
 
-    function startReading() {
-        const inputContainer = document.getElementById('inputContainer');
-        const startBtn = document.getElementById('startBtn');
-        const instruction = document.getElementById('instruction');
-        const spreadContainer = document.getElementById('spreadContainer');
-        const analysisSection = document.getElementById('analysisSection');
-        const questionInput = document.getElementById('question').value.trim();
+    // 頁面載入時初始化 78 張牌陣
+    window.onload = function() {
+        initDeck();
+    };
 
-        // 隱藏輸入區，顯示牌陣
-        inputContainer.style.display = 'none';
-        startBtn.style.display = 'none';
-        analysisSection.style.display = 'none';
-        
-        // 記錄問題
-        if(questionInput) {
-            document.getElementById('questionDisplay').innerText = `🤔 你的問題：「${questionInput}」`;
-            document.getElementById('questionDisplay').style.display = 'block';
-        } else {
-            document.getElementById('questionDisplay').style.display = 'none';
-        }
-
-        // 洗牌與抽牌 (隨機抽取 3 張不重複的牌)
-        let deckCopy = [...tarotDeck];
-        drawnCards = [];
+    function initDeck() {
+        const deckContainer = document.getElementById('deckContainer');
+        deckContainer.innerHTML = '';
+        deckContainer.classList.remove('hidden');
+        deckCopy = [...tarotDeck];
+        selectedCardsData = [];
         flippedCount = 0;
+
+        document.getElementById('subtitleText').innerHTML = "深呼吸，請從下方 78 張牌陣中<br>憑直覺抽出 <b>3</b> 張屬於你的牌。";
+
+        // 動態生成 78 張扇形展開的牌
+        for (let i = 0; i < 78; i++) {
+            let card = document.createElement('div');
+            card.className = 'deck-card';
+            card.style.zIndex = i;
+            
+            // 計算扇形角度與位置 (呈現完美弧度)
+            let angle = -65 + (i * (130 / 77)); // 從 -65度 到 65度
+            card.style.transform = `translateX(-50%) rotate(${angle}deg) translateY(-10px)`;
+            
+            card.onclick = function() { drawCardFromDeck(card); };
+            deckContainer.appendChild(card);
+        }
+    }
+
+    function drawCardFromDeck(cardElement) {
+        if (selectedCardsData.length >= 3) return; // 抽滿 3 張就停止
+
+        // 視覺上讓被點擊的牌消失
+        cardElement.classList.add('drawn');
+
+        // 從資料庫隨機分配一張真實的牌
+        let randomIndex = Math.floor(Math.random() * deckCopy.length);
+        let drawnCard = deckCopy.splice(randomIndex, 1)[0];
+        selectedCardsData.push(drawnCard);
+
+        let slotIndex = selectedCardsData.length - 1;
+
+        // 隱藏虛線空槽，彈出真實牌背
+        document.getElementById(`slot-${slotIndex}`).style.opacity = '0';
+        let displayCard = document.getElementById(`card-${slotIndex}`);
         
-        for(let i=0; i<3; i++) {
-            let randomIndex = Math.floor(Math.random() * deckCopy.length);
-            drawnCards.push(deckCopy.splice(randomIndex, 1)[0]);
-        }
+        // 寫入卡牌資料 (面向背面，玩家睇唔到)
+        document.getElementById(`cardIcon-${slotIndex}`).innerText = drawnCard.i;
+        document.getElementById(`cardName-${slotIndex}`).innerText = drawnCard.n;
+        
+        // 加入彈出動畫
+        displayCard.classList.add('pop-in');
 
-        // 初始化牌面狀態 (全部蓋住)
-        for(let i=0; i<3; i++) {
-            let cardElement = document.getElementById(`card-${i}`);
-            cardElement.classList.remove('is-flipped');
-            // 預先填入資料 (面向背面，玩家看不到)
-            document.getElementById(`cardIcon-${i}`).innerText = drawnCards[i].i;
-            document.getElementById(`cardName-${i}`).innerText = drawnCards[i].n;
+        // 當抽滿 3 張時
+        if (selectedCardsData.length === 3) {
+            setTimeout(() => {
+                document.getElementById('deckContainer').classList.add('hidden');
+                document.getElementById('subtitleText').innerHTML = "👆 牌陣已成，請依序點擊<br>翻開你的 <b>3</b> 張命運之牌。";
+                document.getElementById('subtitleText').style.color = "var(--gold)";
+            }, 500); // 稍微延遲讓牌陣消失
         }
-
-        spreadContainer.style.display = 'flex';
-        instruction.style.display = 'block';
     }
 
     function flipCard(index) {
         let cardElement = document.getElementById(`card-${index}`);
         
-        // 如果已經翻開，就不做任何事
-        if (cardElement.classList.contains('is-flipped')) return;
+        // 如果未抽到該位置的牌，或已經翻開，就不做任何事
+        if (!cardElement.classList.contains('pop-in') || cardElement.classList.contains('is-flipped')) return;
 
         // 翻開卡牌
         cardElement.classList.add('is-flipped');
@@ -482,36 +508,43 @@
 
         // 當三張牌都翻開後，顯示深度分析
         if (flippedCount === 3) {
-            document.getElementById('instruction').style.display = 'none';
+            document.getElementById('subtitleText').innerHTML = "✨ 宇宙的指引已為你解開 ✨";
             
             setTimeout(() => {
                 // 填入解析文字
-                document.getElementById('namePast').innerText = drawnCards[0].n;
-                document.getElementById('descPast').innerText = drawnCards[0].m;
+                document.getElementById('namePast').innerText = selectedCardsData[0].n;
+                document.getElementById('descPast').innerText = selectedCardsData[0].m;
                 
-                document.getElementById('namePresent').innerText = drawnCards[1].n;
-                document.getElementById('descPresent').innerText = drawnCards[1].m;
+                document.getElementById('namePresent').innerText = selectedCardsData[1].n;
+                document.getElementById('descPresent').innerText = selectedCardsData[1].m;
                 
-                document.getElementById('nameFuture').innerText = drawnCards[2].n;
-                document.getElementById('descFuture').innerText = drawnCards[2].m;
+                document.getElementById('nameFuture').innerText = selectedCardsData[2].n;
+                document.getElementById('descFuture').innerText = selectedCardsData[2].m;
 
-                // 顯示解析區塊
+                // 顯示解析區塊與重置按鈕
                 document.getElementById('analysisSection').style.display = 'block';
-            }, 1000); // 延遲 1 秒等最後一張牌翻完
+                document.getElementById('resetBtn').style.display = 'block';
+            }, 1000); 
         }
     }
 
     function resetAll() {
-        document.getElementById('inputContainer').style.display = 'block';
-        document.getElementById('question').value = '';
-        document.getElementById('startBtn').style.display = 'block';
-        document.getElementById('spreadContainer').style.display = 'none';
         document.getElementById('analysisSection').style.display = 'none';
+        document.getElementById('resetBtn').style.display = 'none';
+        document.getElementById('subtitleText').style.color = "#8a9ba8";
         
-        // 確保所有牌蓋返轉
+        // 重置上方 3 張牌
         for(let i=0; i<3; i++) {
-            document.getElementById(`card-${i}`).classList.remove('is-flipped');
+            let cardElement = document.getElementById(`card-${i}`);
+            cardElement.classList.remove('is-flipped');
+            cardElement.classList.remove('pop-in');
+            document.getElementById(`slot-${i}`).style.opacity = '1';
         }
+        
+        // 延遲重新生成 78 張牌陣
+        setTimeout(() => {
+            initDeck();
+        }, 500);
     }
 </script>
 
