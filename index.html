@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🌌 塔羅全方位運程 (沉浸抽卡版)</title>
+    <title>🌌 塔羅全方位運程 (沉浸抽卡優化版)</title>
     <style>
         :root {
             --bg-dark: #07080a;
@@ -18,7 +18,7 @@
             background: radial-gradient(circle at top center, var(--bg-light) 0%, var(--bg-dark) 100%);
             color: var(--text-main);
             margin: 0;
-            padding: 20px 10px;
+            padding: 20px 15px;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -42,7 +42,7 @@
             color: #8a9ba8;
             margin-bottom: 20px;
             line-height: 1.5;
-            height: 42px; /* 固定高度防止跳動 */
+            height: 42px;
         }
 
         /* 3張牌的牌陣排版 */
@@ -74,12 +74,11 @@
 
         .scene {
             width: 100%;
-            aspect-ratio: 2 / 3.2; /* 塔羅牌比例 */
+            aspect-ratio: 2 / 3.2;
             perspective: 1000px;
             position: relative;
         }
 
-        /* 空槽位設計 */
         .empty-slot {
             position: absolute;
             width: 100%;
@@ -95,7 +94,6 @@
             transition: opacity 0.3s;
         }
 
-        /* 實際卡牌設計 */
         .card {
             width: 100%;
             height: 100%;
@@ -105,7 +103,7 @@
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             border-radius: 8px;
-            display: none; /* 預設隱藏，抽中才顯示 */
+            display: none;
         }
 
         .pop-in {
@@ -168,7 +166,7 @@
             border-bottom: 1px solid var(--gold); padding: 2px 0; width: 90%;
         }
 
-        /* 扇形牌堆區 (The Deck) */
+        /* 扇形牌堆區 */
         .deck-container {
             position: relative;
             width: 100%;
@@ -213,19 +211,39 @@
             pointer-events: none;
         }
 
-        /* 深度分析區 */
-        .analysis-section {
+        /* 優化後的深度分析區 (外層容器) */
+        .analysis-container {
             width: 100%;
             max-width: 500px;
+            display: none;
+            flex-direction: column;
+            animation: fadeIn 1s forwards;
+            margin-top: 10px;
+            margin-bottom: 30px;
+        }
+
+        /* 滑動捲軸核心區域 */
+        .analysis-scroll-area {
             background: rgba(31, 40, 51, 0.85);
             border-left: 3px solid var(--gold);
             padding: 20px 15px;
             border-radius: 0 10px 10px 0;
-            margin-top: 10px;
-            margin-bottom: 30px;
-            display: none;
             box-sizing: border-box;
-            animation: fadeIn 1s forwards;
+            max-height: 45vh; /* 限制高度，螢幕的 45% */
+            overflow-y: auto; /* 啟動垂直滑動 */
+        }
+
+        /* 專屬定製 Webkit 捲軸 (完美適配 iPhone) */
+        .analysis-scroll-area::-webkit-scrollbar {
+            width: 5px;
+        }
+        .analysis-scroll-area::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        .analysis-scroll-area::-webkit-scrollbar-thumb {
+            background-color: var(--gold);
+            border-radius: 10px;
         }
 
         @keyframes fadeIn {
@@ -251,15 +269,13 @@
             background: transparent;
             color: var(--gold);
             border: 1px solid var(--gold);
-            padding: 12px 30px;
+            padding: 14px 30px;
             border-radius: 25px;
             font-size: 16px;
             cursor: pointer;
             transition: all 0.3s;
             width: 100%;
-            max-width: 250px;
-            display: none; /* 預設隱藏 */
-            margin: 20px auto 0 auto;
+            margin-top: 15px; /* 與捲軸區分開 */
         }
         .action-btn:hover { background: var(--gold); color: #0b0c10; }
 
@@ -321,24 +337,29 @@
         <!-- JS 動態生成 78 張牌 -->
     </div>
 
-    <!-- 解析區 -->
-    <div class="analysis-section" id="analysisSection">
-        <div class="analysis-block">
-            <div class="block-title">💼 【事業與學業發展】</div>
-            <div class="block-card-name" id="namePast"></div>
-            <div class="block-desc" id="descPast"></div>
+    <!-- 優化後的外層分析區 -->
+    <div class="analysis-container" id="analysisContainer">
+        <!-- 滑動捲軸區 -->
+        <div class="analysis-scroll-area">
+            <div class="analysis-block">
+                <div class="block-title">💼 【事業與學業發展】</div>
+                <div class="block-card-name" id="namePast"></div>
+                <div class="block-desc" id="descPast"></div>
+            </div>
+            <div class="analysis-block">
+                <div class="block-title">❤️ 【感情與人際緣份】</div>
+                <div class="block-card-name" id="namePresent"></div>
+                <div class="block-desc" id="descPresent"></div>
+            </div>
+            <div class="analysis-block">
+                <div class="block-title">🏡 【家庭與整體生活】</div>
+                <div class="block-card-name" id="nameFuture"></div>
+                <div class="block-desc" id="descFuture"></div>
+            </div>
         </div>
-        <div class="analysis-block">
-            <div class="block-title">❤️ 【感情與人際緣份】</div>
-            <div class="block-card-name" id="namePresent"></div>
-            <div class="block-desc" id="descPresent"></div>
-        </div>
-        <div class="analysis-block">
-            <div class="block-title">🏡 【家庭與整體生活】</div>
-            <div class="block-card-name" id="nameFuture"></div>
-            <div class="block-desc" id="descFuture"></div>
-        </div>
-        <button class="action-btn" id="resetBtn" onclick="resetAll()">🔄 重新洗牌測算</button>
+        
+        <!-- 固定於底部的按鈕 -->
+        <button class="action-btn" onclick="resetAll()">🔄 重新洗牌測算</button>
     </div>
 
 <script>
@@ -432,7 +453,6 @@
     let selectedCardsData = [];
     let flippedCount = 0;
 
-    // 頁面載入時初始化 78 張牌陣
     window.onload = function() {
         initDeck();
     };
@@ -447,71 +467,56 @@
 
         document.getElementById('subtitleText').innerHTML = "深呼吸，請從下方 78 張牌陣中<br>憑直覺抽出 <b>3</b> 張屬於你的牌。";
 
-        // 動態生成 78 張扇形展開的牌
         for (let i = 0; i < 78; i++) {
             let card = document.createElement('div');
             card.className = 'deck-card';
             card.style.zIndex = i;
-            
-            // 計算扇形角度與位置 (呈現完美弧度)
-            let angle = -65 + (i * (130 / 77)); // 從 -65度 到 65度
+            let angle = -65 + (i * (130 / 77));
             card.style.transform = `translateX(-50%) rotate(${angle}deg) translateY(-10px)`;
-            
             card.onclick = function() { drawCardFromDeck(card); };
             deckContainer.appendChild(card);
         }
     }
 
     function drawCardFromDeck(cardElement) {
-        if (selectedCardsData.length >= 3) return; // 抽滿 3 張就停止
+        if (selectedCardsData.length >= 3) return; 
 
-        // 視覺上讓被點擊的牌消失
         cardElement.classList.add('drawn');
 
-        // 從資料庫隨機分配一張真實的牌
         let randomIndex = Math.floor(Math.random() * deckCopy.length);
         let drawnCard = deckCopy.splice(randomIndex, 1)[0];
         selectedCardsData.push(drawnCard);
 
         let slotIndex = selectedCardsData.length - 1;
 
-        // 隱藏虛線空槽，彈出真實牌背
         document.getElementById(`slot-${slotIndex}`).style.opacity = '0';
         let displayCard = document.getElementById(`card-${slotIndex}`);
         
-        // 寫入卡牌資料 (面向背面，玩家睇唔到)
         document.getElementById(`cardIcon-${slotIndex}`).innerText = drawnCard.i;
         document.getElementById(`cardName-${slotIndex}`).innerText = drawnCard.n;
         
-        // 加入彈出動畫
         displayCard.classList.add('pop-in');
 
-        // 當抽滿 3 張時
         if (selectedCardsData.length === 3) {
             setTimeout(() => {
                 document.getElementById('deckContainer').classList.add('hidden');
                 document.getElementById('subtitleText').innerHTML = "👆 牌陣已成，請依序點擊<br>翻開你的 <b>3</b> 張命運之牌。";
                 document.getElementById('subtitleText').style.color = "var(--gold)";
-            }, 500); // 稍微延遲讓牌陣消失
+            }, 500); 
         }
     }
 
     function flipCard(index) {
         let cardElement = document.getElementById(`card-${index}`);
-        
-        // 如果未抽到該位置的牌，或已經翻開，就不做任何事
         if (!cardElement.classList.contains('pop-in') || cardElement.classList.contains('is-flipped')) return;
 
-        // 翻開卡牌
         cardElement.classList.add('is-flipped');
         flippedCount++;
 
-        // 當三張牌都翻開後，顯示深度分析
         if (flippedCount === 3) {
             document.getElementById('subtitleText').innerHTML = "✨ 宇宙的指引已為你解開 ✨";
             
             setTimeout(() => {
-                // 填入解析文字
                 document.getElementById('namePast').innerText = selectedCardsData[0].n;
                 document.getElementById('descPast').innerText = selectedCardsData[0].m;
                 
@@ -521,19 +526,16 @@
                 document.getElementById('nameFuture').innerText = selectedCardsData[2].n;
                 document.getElementById('descFuture').innerText = selectedCardsData[2].m;
 
-                // 顯示解析區塊與重置按鈕
-                document.getElementById('analysisSection').style.display = 'block';
-                document.getElementById('resetBtn').style.display = 'block';
+                // 顯示容器 (Flex 排版)
+                document.getElementById('analysisContainer').style.display = 'flex';
             }, 1000); 
         }
     }
 
     function resetAll() {
-        document.getElementById('analysisSection').style.display = 'none';
-        document.getElementById('resetBtn').style.display = 'none';
+        document.getElementById('analysisContainer').style.display = 'none';
         document.getElementById('subtitleText').style.color = "#8a9ba8";
         
-        // 重置上方 3 張牌
         for(let i=0; i<3; i++) {
             let cardElement = document.getElementById(`card-${i}`);
             cardElement.classList.remove('is-flipped');
@@ -541,7 +543,6 @@
             document.getElementById(`slot-${i}`).style.opacity = '1';
         }
         
-        // 延遲重新生成 78 張牌陣
         setTimeout(() => {
             initDeck();
         }, 500);
