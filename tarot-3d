@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🌌 3D 塔羅占卜小屋</title>
+    <style>
+        :root {
+            --bg-dark: #0b0c10;
+            --bg-light: #1f2833;
+            --gold: #d4af37;
+            --gold-glow: rgba(212, 175, 55, 0.5);
+            --text-main: #c5c6c7;
+            --card-width: 220px;
+            --card-height: 340px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-dark) 100%);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        h2 {
+            color: var(--gold);
+            text-align: center;
+            font-size: 26px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px var(--gold-glow);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #8a9ba8;
+            margin-bottom: 25px;
+        }
+
+        .input-box {
+            width: 100%;
+            max-width: 320px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 10;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #45a29e;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 10px var(--gold-glow);
+        }
+
+        /* 3D 卡牌舞台 */
+        .scene {
+            width: var(--card-width);
+            height: var(--card-height);
+            perspective: 1200px;
+            margin: 0 auto 30px auto;
+            position: relative;
+            z-index: 5;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 15px;
+        }
+
+        /* 翻牌動畫 Class */
+        .card.is-flipped {
+            transform: translateY(-20px) rotateY(180deg) scale(1.05);
+            box-shadow: 0 20px 40px var(--gold-glow);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid var(--gold);
+            box-sizing: border-box;
+        }
+
+        /* 牌背設計 */
+        .card-face-back {
+            background: linear-gradient(135deg, #111 0%, #2b1b3d 100%);
+            background-image: repeating-linear-gradient(45deg, rgba(212,175,55,0.05) 0, rgba(212,175,55,0.05) 2px, transparent 2px, transparent 8px);
+        }
+        
+        .mystic-circle {
+            width: 120px;
+            height: 120px;
+            border: 2px dashed var(--gold);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 50px;
+            animation: spin 20s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* 牌面設計 */
+        .card-face-front {
+            background: #fdfbf7;
+            transform: rotateY(180deg);
+            color: #111;
+            padding: 15px;
+        }
+
+        .card-image-placeholder {
+            font-size: 70px;
+            margin-bottom: 20px;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .card-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2b1b3d;
+            text-align: center;
+            border-top: 2px solid var(--gold);
+            border-bottom: 2px solid var(--gold);
+            padding: 5px 0;
+            width: 80%;
+            letter-spacing: 1px;
+        }
+
+        .card-number {
+            position: absolute;
+            top: 15px;
+            font-size: 18px;
+            font-family: serif;
+            color: #888;
+        }
+
+        /* 分析結果區 */
+        .analysis-section {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(31, 40, 51, 0.8);
+            border-left: 4px solid var(--gold);
+            padding: 20px;
+            border-radius: 0 12px 12px 0;
+            margin-top: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease;
+            display: none;
+            box-sizing: border-box;
+        }
+
+        .analysis-section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .analysis-title {
+            color: var(--gold);
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analysis-content {
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            color: #d1d5db;
+        }
+
+        .keywords {
+            display: inline-block;
+            background: rgba(212, 175, 55, 0.15);
+            color: var(--gold);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .action-btn {
+            background: transparent;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover, .action-btn:active {
+            background: var(--gold);
+            color: #0b0c10;
+        }
+        
+        #instruction {
+            color: var(--gold);
+            margin-top: 10px;
+            font-size: 16px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🌌 塔羅潛意識解讀</h2>
+    <div class="subtitle">在心中默念問題，或寫在下方，然後點擊神秘卡牌。</div>
+
+    <div class="input-box">
+        <input type="text" id="question" placeholder="你目前最大的困惑是？">
+    </div>
+
+    <!-- 3D 卡牌區 -->
+    <div class="scene">
+        <div class="card" id="tarotCard" onclick="drawCard()">
+            <!-- 牌背 -->
+            <div class="card-face card-face-back">
+                <div class="mystic-circle">🔯</div>
+            </div>
+            <!-- 牌面 -->
+            <div class="card-face card-face-front">
+                <div class="card-number" id="cardNumber">0</div>
+                <div class="card-image-placeholder" id="cardImage">🃏</div>
+                <div class="card-name" id="cardName">愚者</div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="instruction">👆 點擊卡牌進行抽取</div>
+
+    <!-- 深度分析區 -->
+    <div class="analysis-section" id="analysisSection">
+        <div class="keywords" id="cardKeywords">關鍵字：冒險、新開始、未知</div>
+        
+        <div class="analysis-title">👁️ 現狀解析</div>
+        <div class="analysis-content" id="interpretation"></div>
+        
+        <div class="analysis-title">✨ 宇宙指引</div>
+        <div class="analysis-content" id="advice"></div>
+
+        <div style="text-align: center;">
+            <button class="action-btn" onclick="resetCard()">🔄 洗牌重抽</button>
+        </div>
+    </div>
+
+<script>
+    // 塔羅牌資料庫 (模擬大阿爾克那)
+    const tarotDeck = [
+        { 
+            num: "0", name: "愚者 (The Fool)", icon: "🃏", 
+            keywords: "冒險、新開始、純真、未知",
+            interp: "你正處於一個全新階段的邊緣。這張牌反映出你內心渴望擺脫舊有的束縛，尋求新鮮感。對於你所問的事情，目前充滿了未知數，但也代表著無限的可能性。",
+            advice: "這不是一個需要精密計畫的時刻。宇宙鼓勵你放下恐懼，憑著直覺大膽邁出第一步。哪怕在外人眼中看起來有點傻，但這趟旅程將為你帶來巨大的靈魂成長。"
+        },
+        { 
+            num: "I", name: "魔術師 (The Magician)", icon: "🪄", 
+            keywords: "創造力、行動、資源充足、自信",
+            interp: "你目前已經具備了解決問題所需的所有條件與能力。這張牌顯示出極強的顯化能量，你不是在被動等待命運安排，而是擁有主動改變局面的力量。",
+            advice: "相信自己的能力！把你腦海中的想法化為實際行動。善用你身邊的資源與人脈，只要你集中意志力，你所期望的結果就會被你親手創造出來。"
+        },
+        { 
+            num: "II", name: "女祭司 (The High Priestess)", icon: "🌙", 
+            keywords: "直覺、潛意識、等待、神祕",
+            interp: "事情的真相尚未完全浮出水面。你可能感覺到一些隱晦的信號，或者內心有些說不清的直覺。這張牌代表針對你的問題，答案不在外部世界，而隱藏在表面之下。",
+            advice: "現在不是主動出擊或做重大決定的好時機。靜下心來，多留意你的夢境或第一直覺。保持沉默與觀察，當時機成熟時，真相自然會向你展現。"
+        },
+        { 
+            num: "X", name: "命運之輪 (Wheel of Fortune)", icon: "🎡", 
+            keywords: "轉捩點、命運、契機、無常",
+            interp: "無論你目前處於順境還是逆境，情況即將發生不可阻擋的轉變。這張牌象徵著因果與時機的輪轉，有些事情是人力無法控制的，命運的齒輪已經開始轉動。",
+            advice: "順應改變，不要試圖抗拒洪流。如果是好運降臨，請感恩並把握；如果是挑戰，請明白這只是週期的一部分。保持靈活與開放的心態，迎接新的篇章。"
+        },
+        { 
+            num: "VIII", name: "力量 (Strength)", icon: "🦁", 
+            keywords: "勇氣、耐心、以柔克剛、內在力量",
+            interp: "你正在面對一個需要耗費心神的挑戰，或者正在處理強烈的情緒。這張牌顯示你擁有足夠的韌性去克服困難，但這種力量不是來自於野蠻的硬碰硬，而是來自於包容與耐心。",
+            advice: "不要用強硬的手段去逼迫事情發生。嘗試用溫柔、理解和耐心去化解目前的僵局。安撫你內心的恐懼或焦躁，當你能夠控制自己的情緒時，你就能控制整個局面。"
+        },
+        { 
+            num: "XVII", name: "星星 (The Star)", icon: "🌟", 
+            keywords: "希望、療癒、靈感、平靜",
+            interp: "經歷了之前的混亂或低潮後，你終於迎來了平靜與希望的曙光。這張牌散發著極其正面的療癒能量，暗示你所問的事情前景光明，宇宙正在為你指路。",
+            advice: "保持樂觀與信心！不要讓過去的陰影阻礙你的步伐。這是一個適合許願和追尋理想的時刻，跟隨你內心最高尚的願景去行動，你一定會得到宇宙的祝福。"
+        },
+        { 
+            num: "XIX", name: "太陽 (The Sun)", icon: "☀️", 
+            keywords: "成功、喜悅、活力、真相大白",
+            interp: "這是塔羅牌中最棒的一張牌！一切陰霾都將被驅散。你所問的事情將會獲得極大的成功、快樂與清晰的答案。你的能量非常飽滿，充滿了生命力。",
+            advice: "毫無保留地展現你自己吧！大方接受讚美與成就。這是一個慶祝的時刻，保持你的熱情與陽光，你的正能量將會感染身邊的所有人，促成事情完美落地。"
+        },
+        { 
+            num: "XII", name: "倒吊人 (The Hanged Man)", icon: "🦇", 
+            keywords: "暫停、犧牲、換位思考、頓悟",
+            interp: "你目前似乎卡在一個瓶頸，或者感覺事情停滯不前。這並不是壞事，這張牌代表宇宙強迫你按下暫停鍵，因為用舊有的方式已經無法解決當前的問題。",
+            advice: "停止無謂的掙扎。與其急於求成，不如利用這段停滯期換一個完全相反的角度來看待事情。有時候，暫時的退讓或放下執著，反而會為你帶來決定性的頓悟與突破。"
+        }
+    ];
+
+    let isDrawing = false;
+    let hasDrawn = false;
+
+    function drawCard() {
+        if (isDrawing || hasDrawn) return;
+        isDrawing = true;
+        hasDrawn = true;
+
+        const card = document.getElementById('tarotCard');
+        const instruction = document.getElementById('instruction');
+        const analysisSection = document.getElementById('analysisSection');
+        const question = document.getElementById('question').value.trim();
+
+        // 隱藏提示
+        instruction.style.display = 'none';
+
+        // 隨機抽牌
+        const randomIndex = Math.floor(Math.random() * tarotDeck.length);
+        const selected = tarotDeck[randomIndex];
+
+        // 填入牌面資料 (此時牌背向著觀眾，填資料不會被發現)
+        document.getElementById('cardNumber').innerText = selected.num;
+        document.getElementById('cardImage').innerText = selected.icon;
+        document.getElementById('cardName').innerText = selected.name;
+
+        // 觸發 CSS 翻牌動畫
+        card.classList.add('is-flipped');
+
+        // 等待翻牌動畫 (1.2秒) 完成後，顯示分析文字
+        setTimeout(() => {
+            document.getElementById('cardKeywords').innerText = `關鍵字：${selected.keywords}`;
+            
+            let interpText = "";
+            if(question) {
+                interpText = `<strong style="color:var(--gold);">關於「${question}」：</strong><br><br>`;
+            }
+            interpText += selected.interp;
+            
+            document.getElementById('interpretation').innerHTML = interpText;
+            document.getElementById('advice').innerText = selected.advice;
+
+            // 顯示分析區塊並加上淡入動畫
+            analysisSection.style.display = 'block';
+            setTimeout(() => {
+                analysisSection.classList.add('show');
+                isDrawing = false;
+            }, 50);
+
+        }, 1200);
+    }
+
+    function resetCard() {
+        if (isDrawing) return;
+        
+        const card = document.getElementById('tarotCard');
+        const analysisSection = document.getElementById('analysisSection');
+        const instruction = document.getElementById('instruction');
+
+        // 隱藏分析區
+        analysisSection.classList.remove('show');
+        
+        setTimeout(() => {
+            analysisSection.style.display = 'none';
+            // 將牌翻轉向下
+            card.classList.remove('is-flipped');
+            
+            // 等待牌翻回去後，重置狀態
+            setTimeout(() => {
+                document.getElementById('question').value = '';
+                instruction.style.display = 'block';
+                hasDrawn = false;
+            }, 1000);
+            
+        }, 500);
+    }
+</script>
+
+</body>
+</html>
